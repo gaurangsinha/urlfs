@@ -2375,7 +2375,13 @@ async function syncVFSAndURL(updateHistory = true) {
     }
 
     if (updateHistory) {
-      history.replaceState(null, '', '#' + base64url);
+      try {
+        history.replaceState(null, '', '#' + base64url);
+      } catch (e) {
+        try {
+          location.hash = '#' + base64url;
+        } catch (_) {}
+      }
     }
 
     if (state.vfs.has('/etc/cmdline')) {
@@ -2582,7 +2588,7 @@ async function runActiveWasm(extraStdin = '') {
   }
 
   const workerCodeEl = document.getElementById('worker-code');
-  const workerCode = workerCodeEl ? workerCodeEl.textContent : '';
+  const workerCode = workerCodeEl ? (workerCodeEl.value || workerCodeEl.textContent || '') : '';
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   state.activeWorkerBlobUrl = URL.createObjectURL(blob);
   const worker = new Worker(state.activeWorkerBlobUrl);
@@ -2735,7 +2741,11 @@ function toggleWorkbench(force) {
   }
 }
 
+let isAppSetup = false;
 function setupApp() {
+  if (isAppSetup) return;
+  isAppSetup = true;
+
   initElements();
 
   el.btnRun.onclick = () => runActiveWasm();

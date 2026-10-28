@@ -215,12 +215,16 @@ ${css}
     <div id="toast-container"></div>
   </div>
 
-  <script type="text/worker" id="worker-code">
+  <textarea id="worker-code" style="display: none;" hidden>
 ${workerCode}
-  </script>
+  </textarea>
 
   <script>
+(function() {
+  if (window.__URLFS_APP_INITIALIZED__) return;
+  window.__URLFS_APP_INITIALIZED__ = true;
 ${appCode}
+})();
   </script>
 </body>
 </html>`;

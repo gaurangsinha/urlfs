@@ -1039,7 +1039,7 @@ kbd {
     <div id="toast-container"></div>
   </div>
 
-  <script type="text/worker" id="worker-code">
+  <textarea id="worker-code" style="display: none;" hidden>
 class VFS {
   constructor() {
     this.files = new Map();
@@ -1793,9 +1793,12 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = { WasiHost, VFS, WasiExitError, parseCmdline, parseEnv };
 }
 
-  </script>
+  </textarea>
 
   <script>
+(function() {
+  if (window.__URLFS_APP_INITIALIZED__) return;
+  window.__URLFS_APP_INITIALIZED__ = true;
 class VFS {
   constructor() {
     this.files = new Map();
@@ -4173,7 +4176,13 @@ async function syncVFSAndURL(updateHistory = true) {
     }
 
     if (updateHistory) {
-      history.replaceState(null, '', '#' + base64url);
+      try {
+        history.replaceState(null, '', '#' + base64url);
+      } catch (e) {
+        try {
+          location.hash = '#' + base64url;
+        } catch (_) {}
+      }
     }
 
     if (state.vfs.has('/etc/cmdline')) {
@@ -4380,7 +4389,7 @@ async function runActiveWasm(extraStdin = '') {
   }
 
   const workerCodeEl = document.getElementById('worker-code');
-  const workerCode = workerCodeEl ? workerCodeEl.textContent : '';
+  const workerCode = workerCodeEl ? (workerCodeEl.value || workerCodeEl.textContent || '') : '';
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   state.activeWorkerBlobUrl = URL.createObjectURL(blob);
   const worker = new Worker(state.activeWorkerBlobUrl);
@@ -4533,7 +4542,11 @@ function toggleWorkbench(force) {
   }
 }
 
+let isAppSetup = false;
 function setupApp() {
+  if (isAppSetup) return;
+  isAppSetup = true;
+
   initElements();
 
   el.btnRun.onclick = () => runActiveWasm();
@@ -4773,6 +4786,7 @@ if (typeof document !== 'undefined') {
     setupApp();
   }
 }
+})();
   </script>
 </body>
 </html>
